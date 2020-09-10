@@ -1,0 +1,30 @@
+List<Id> excludeUserId = new List<Id>();
+List<Id> groupIdList = new List<Id>();
+String queueNameCustomLabel = System.label.Exclude_case_Queue_user_from_ManagersView_P_page;
+String userCustomLabel = System.label.Exclude_case_owner_from_ManagersView_P_page;
+List<String> queueNameList = queueNameCustomLabel.split(';');
+List<String> userNameList = userCustomLabel.split(';');
+List<Group> groupList = new List<Group>();
+groupList = [select Id,Name from Group where Name IN:queueNameList AND Type = 'Queue'];
+List<GroupMember> groupMemberList = new List<GroupMember>();
+groupMemberList = [select UserOrGroupId from GroupMember where GroupId IN : groupList];
+system.debug('groupMemberList@@@'+groupMemberList);
+for(GroupMember gm :  [select UserOrGroupId from GroupMember where GroupId IN : groupList]){
+    String userOrgroupIdStr = String.valueOf(gm.UserOrGroupId);
+    if(userOrgroupIdStr.substring(0,3) == '005'){
+        excludeUserId.add(gm.UserOrGroupId);
+    }
+    else if(userOrgroupIdStr.substring(0,3) == '00G'){
+        groupIdList.add(gm.UserOrGroupId);
+    }
+}
+system.debug('excludeUserId1@@@'+excludeUserId);
+system.debug('groupIdList@@@'+groupIdList);
+for(GroupMember gm : [select UserOrGroupId from GroupMember where GroupId IN : groupIdList]){
+    excludeUserId.add(gm.UserOrGroupId);
+}
+system.debug('groupIdList@@@'+excludeUserId);
+for(User usr : [select Id from User where Name IN:userNameList]){
+    excludeUserId.add(usr.Id);
+}
+system.debug('excludeUserId@@@'+excludeUserId);
